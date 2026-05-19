@@ -33,5 +33,3 @@ repoRouter.post("/", async (req, res) => {
         });
     }
 });
-
-export default repoRouter;
