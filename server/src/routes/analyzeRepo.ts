@@ -2,7 +2,7 @@ import { Router } from "express";
 import { simpleGit } from "simple-git";
 import type { SimpleGit } from "simple-git";
 
-const repoRouter = Router();
+export const repoRouter = Router();
 
 repoRouter.post("/", async (req, res) => {
     const { repoUrl } = req.body;
