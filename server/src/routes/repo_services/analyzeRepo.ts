@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { simpleGit } from "simple-git";
 import type { SimpleGit } from "simple-git";
+import { readReadme } from "../../services/readFile.js";
 
 export const repoRouter = Router();
 
@@ -19,10 +20,11 @@ repoRouter.post("/", async (req, res) => {
 
     try {
         await git.clone(repoUrl, repoPath, ["--depth", "1"]);
-
+        const summarizedText = await readReadme(repoPath);
         return res.status(200).json({
             message: "Repository cloned successfully",
             path: repoPath,
+            summary: summarizedText
         });
 
     } catch (err) {
