@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { simpleGit } from "simple-git";
 import type { SimpleGit } from "simple-git";
-import { readReadme } from "../../services/readFiles.js";
+import { readFilesAndSummarize } from "../../services/readFiles.js";
 import {rm} from "node:fs/promises"
 
 export const repoRouter = Router();
@@ -21,14 +21,11 @@ repoRouter.post("/", async (req, res) => {
 
     try {
         await git.clone(repoUrl, repoPath, ["--depth", "1"]);
-        const summarizedText = await readReadme(repoPath);
-        await rm(repoPath, {
-            recursive: true,
-            force: true
-        })
+        const result = await readFilesAndSummarize(repoPath);
         return res.status(200).json({
             message: "Repository cloned successfully",
-            summary: summarizedText
+            summary: result?.summary,
+            techStack: result?.techStack
         });
 
     } catch (err) {
@@ -37,5 +34,11 @@ repoRouter.post("/", async (req, res) => {
         return res.status(500).json({
             message: "Failed to clone repository",
         });
+    }
+    finally{
+        await rm(repoPath, {
+            recursive: true,
+            force: true
+        })
     }
 });
