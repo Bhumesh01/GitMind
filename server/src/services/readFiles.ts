@@ -31,26 +31,43 @@ export async function readFilesAndSummarize(path:string){
             readmeRes = await summarizeReadme(data);
         }
         // 2. determine tech stack and get data
-        const importantFiles  = [
-            "package.json",
-            "requirements.txt",
-            "pyproject.toml",
-            "pom.xml",
-            "build.gradle",
-            "Cargo.toml",
-            "go.mod",
-            "Dockerfile",
-            "docker-compose.yml"
-        ] 
-        const importantFilesPath = importantFiles.map(file=>pathModule.join(path, file)).filter(file=>fs.existsSync(file));
-        let importantFilesData: fileType[] = [];
-        for(const filePath of importantFilesPath){
-            const content = await readFile(filePath, 'utf-8');
-            importantFilesData.push({
-                filename: pathModule.basename(filePath),
-                content: content
-            });
-        }
+        const importantFiles = [
+            "**/package.json",
+            "**/requirements.txt",
+            "**/pyproject.toml",
+            "**/pom.xml",
+            "**/build.gradle",
+            "**/Cargo.toml",
+            "**/go.mod",
+            "**/Dockerfile",
+            "**/docker-compose.yml",
+        ];
+        const ignore = [
+            "**/node_modules/**",
+            "**/.git/**",
+            "**/dist/**",
+            "**/build/**",
+            "**/.next/**",
+            "**/coverage/**",
+            "**/target/**",
+        ];
+        const discoveredFiles = [
+          ...new Set(
+            importantFiles.flatMap(pattern =>
+              fs.globSync(pattern, {
+                cwd: path,
+                exclude: ignore
+              })
+            )
+          )
+        ];
+        const importantFilesPath = discoveredFiles.map(file=>pathModule.join(path, file)).filter(file=>fs.existsSync(file));
+        const importantFilesData: fileType[]  = await Promise.all(
+          importantFilesPath.map(async (filePath) => ({
+            filename: pathModule.relative(path, filePath),
+            content: await readFile(filePath, "utf8")
+          }))
+        );
         if(importantFilesData.length>0){
             techStackRes = await summarizeTechStack(importantFilesData);
         }

@@ -17,7 +17,7 @@ repoRouter.post("/", async (req, res) => {
 
     const git: SimpleGit = simpleGit();
 
-    const repoPath = `./temp/${Date.now()}`;
+    const repoPath = `./t/${Date.now()}`;
 
     try {
         await git.clone(repoUrl, repoPath, ["--depth", "1"]);
@@ -30,7 +30,11 @@ repoRouter.post("/", async (req, res) => {
 
     } catch (err) {
         console.error(err);
-
+        if(err instanceof Error && err.message.includes("Filename too long")){
+            return res.status(400).json({
+                "error": "Repository contains extremely long file paths and cannot be analyzed on this system."
+            });
+        }
         return res.status(500).json({
             message: "Failed to clone repository",
         });
