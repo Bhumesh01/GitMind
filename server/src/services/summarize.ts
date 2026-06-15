@@ -114,7 +114,12 @@ export async function summarizeTechStack(data: fileType[]) {
         });
         console.log(response.text);
         try {
-            return JSON.parse(response.text!);
+            const cleaned = response.text
+              ?.replace(/```json/g, "")
+              ?.replace(/```/g, "")
+              ?.trim();
+                    
+            return JSON.parse(cleaned!);
         }
         catch {
             return {
